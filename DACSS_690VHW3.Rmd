@@ -1,0 +1,26 @@
+---
+title: "Untitled"
+author: "Felix Ramirez Mota"
+date: "2026-04-20"
+output: html_document
+---
+
+```{r}
+getwd()
+library("readxl")
+
+mass_arrests <- read_excel("/Users/felixramirez/Desktop/DACSS_690V/DACSS_690VHW3/Mass_Arrests.xlsx")
+
+head(mass_arrests)
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
