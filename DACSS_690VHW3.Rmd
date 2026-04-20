@@ -6,21 +6,49 @@ output: html_document
 ---
 
 ```{r}
-getwd()
 library("readxl")
+library(ggplot2)
 
-mass_arrests <- read_excel("/Users/felixramirez/Desktop/DACSS_690V/DACSS_690VHW3/Mass_Arrests.xlsx")
+mass_arrests <- read_excel("/Users/felixramirez/Desktop/DACSS_690V/DACSS_690V-HW3/Mass_Arrests.xlsx")
 
-head(mass_arrests)
+covid <- read.csv("/Users/felixramirez/Desktop/DACSS_690V/DACSS_690V-HW3/covid-19.csv")
+
+
 
 ```
 
-## Including Plots
+## Ethnicity and Arrest Type Plot
 
-You can also embed plots, for example:
+```{r}
+str(mass_arrests)
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+eth_arresttype <- table(mass_arrests$Ethnicity, mass_arrests$`Arrest Type`)
+eth_arresttype_mgCol <- round(prop.table(eth_arresttype, margin = 2), 3)
+eth_arresttypeDF <- as.data.frame(eth_arresttype)
+names(eth_arresttypeDF) <- c("Ethnicity", "Arrest Type", "Counts")
+eth_arresttypeDF$pct <- 100*as.data.frame(eth_arresttype_mgCol)[,3]
+eth_arresttypeDF
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+### Plot 1
+
+```{r}
+topdata <- eth_arresttypeDF[eth_arresttypeDF$Ethnicity %in% names(sort(table(mass_arrests$Ethnicity), decreasing = TRUE)) [1:15],]
+ggplot(data = topdata, aes(x = `Arrest Type`, y = reorder(Ethnicity,pct), fill = pct))+
+  geom_tile()+
+  labs(
+    title = "Arrest Type Distribution by Ethnicity",
+    subtitle = "Massachussets Arrest Data",
+    x = "Arrest Type",
+    y = "Ethnic Group",
+    fill = "Ethnicity",
+  ) +
+  theme_classic()+
+  theme(
+    axis.text.x = element_text(angle = 60, vjust = 0.6),
+    legend.position = "top",
+    legend.direction = "horizontal"
+  )+
+  scale_fill_gradient(low = "white", high = "steelblue")
+```
