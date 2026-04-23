@@ -1,0 +1,46 @@
+---
+title: "DACSS 690V HW 3"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(patchwork)
+
+```
+
+## Arrests are Concentration in a few Ethnicities {data-width="650"}
+
+```{r, fig.width=10, fig.height=5}
+p1 <- "https://github.com/DACSS-690V-1000/DACSS_690V-HW3/raw/main/p1.rds"
+readRDS(url(p1))
+```
+
+## COVID Cases
+
+```{r, fig.width=10,fig.height=6}
+p2 <- "https://github.com/DACSS-690V-1000/DACSS_690V-HW3/raw/main/p2.rds"
+readRDS(url(p2))
+```
+
+## Median Arrest Age Among all Groups Ranges from 31 to 35
+
+```{r,fig.width=10, fig.height=6}
+p3 <- "https://github.com/DACSS-690V-1000/DACSS_690V-HW3/raw/main/p3.rds"
+readRDS(url(p3))
+```
+
+## Famous Cities Rank Higher on Safety
+
+```{r, fig.width=14, fig.height=10}
+safecities_org <- "https://github.com/DACSS-690V-1000/DACSS_690V-HW3/raw/main/safecities_org.rds"
+safecities_imprv <- "https://github.com/DACSS-690V-1000/DACSS_690V-HW3/raw/main/safecities_imprv.rds"
+
+safecities_org<-readRDS(url(safecities_org))
+safecities_imprv <-readRDS(url(safecities_imprv))
+
+safecities_org + safecities_imprv
+```
