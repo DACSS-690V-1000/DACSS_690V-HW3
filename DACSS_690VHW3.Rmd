@@ -170,9 +170,25 @@ safecities_long$type <- ifelse(grepl("_In_", safecities_long$variable), "input",
 
 safecities_long_avg <- aggregate(value ~ city + type + dimension, data = safecities_long, FUN = mean, na.rm = TRUE)
 
+safecities_long_avg <- safecities_long_avg|>
+  mutate(
+    dimension_label = case_when(
+      dimension == "D" ~ "DIGI",
+      dimension == "E" ~ "ENVIR",
+      dimension == "H" ~ "HEALTH",
+      dimension == "I" ~ "INFRA",
+      dimension == "P" ~ "PERS",
+      TRUE ~ dimension
+    ),
+    dimension_label = factor(
+      dimension_label,
+      levels = c("PERS", "HEALTH", "DIGI", "INFRA", "ENVIR")
+    )
+  )
+
 #Original Plot
 safecities_org <- ggplot( safecities_long_avg[safecities_long_avg$type == "input", ], 
-  aes(x = reorder(dimension, value, median),
+  aes(x = reorder(dimension_label, value, median),
       y = reorder(city, value, median),
       fill = value))+
   geom_tile()+
@@ -185,22 +201,22 @@ safecities_org <- ggplot( safecities_long_avg[safecities_long_avg$type == "input
 
 #Improved Plot
 safecities_imprv <- ggplot( safecities_long_avg[safecities_long_avg$type == "input", ], 
-  aes(x = reorder(dimension, value, median),
+  aes(x = reorder(dimension_label, value, median),
       y = reorder(city, value, median),
       fill = value))+
   geom_tile()+
   scale_fill_gradient(low = "white", high = "steelblue")+
   labs(
     title = "How do Cities Perform on Different Safety Measures?",
-    subtitle = "Camparing Cities Across the World",
+    subtitle = "Comparing Cities Across the World",
     x = "Dimensions",
     y = "Cities",
     fill = "Score"
   )+
   theme_classic()+
   theme(
-    axis.text.x = element_text(angle = 90, hjust = 1, size = 10),
-    axis.text.y = element_text(size = 9.5),
+    axis.text.x = element_text(angle = 90, hjust = 1, size = 11.5),
+    axis.text.y = element_text(size = 11.5),
     legend.position = "right",
     plot.title = element_text(face = "bold")
   )
