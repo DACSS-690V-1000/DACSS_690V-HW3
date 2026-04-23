@@ -13,7 +13,6 @@ library(ggpmisc)
 library(tibble)
 library(scales)
 library(reshape2)
-library(patchwork)
 library(dplyr)
 
 mass_arrests <- read_excel("/Users/felixramirez/Desktop/DACSS_690V/DACSS_690V-HW3/Mass_Arrests.xlsx")
@@ -40,7 +39,7 @@ eth_arresttypeDF
 
 ### Plot 1
 
-```{r}
+```{r, fig.height=5}
 topdata <- eth_arresttypeDF[eth_arresttypeDF$Ethnicity %in% names(sort(table(mass_arrests$Ethnicity), decreasing = TRUE)) [1:15],]
 
 topdata <- topdata|>
@@ -61,6 +60,7 @@ p1 <- ggplot(topdata, aes(x = Arrest_Type_Label, y = reorder(Ethnicity,pct), fil
     x = "Arrest Type",
     y = "Ethnic Group",
     fill = "Ethnicity",
+    caption = "Massachussetts State Police Arrests"
   ) +
   theme_classic()+
   theme(
