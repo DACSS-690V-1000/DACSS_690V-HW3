@@ -161,7 +161,7 @@ saveRDS(p3, file = "p3.rds")
 
 ## Safe Cities (Multivariate)
 
-```{r, fig.width=12, fig.height=6}
+```{r, fig.width=12, fig.height=10}
 safe_cities <- safe_cities[, !(names(safe_cities) %in% "Overall_Score")]
 
 safecities_long <- melt(safe_cities, id.vars = "city")
@@ -200,11 +200,13 @@ safecities_imprv <- ggplot( safecities_long_avg[safecities_long_avg$type == "inp
   theme_classic()+
   theme(
     axis.text.x = element_text(angle = 90, hjust = 1, size = 10),
-    axis.text.y = element_text(size = 6),
+    axis.text.y = element_text(size = 9.5),
     legend.position = "right",
     plot.title = element_text(face = "bold")
   )
-  safecities_org + safecities_imprv
+  safecities_org 
+  safecities_imprv
   
-  
+  saveRDS(safecities_org, file = "safecities_org.rds")
+  saveRDS(safecities_imprv, file = "safecities_imprv.rds")
 ```
