@@ -6,18 +6,25 @@ output: html_document
 ---
 
 ```{r}
-library("readxl")
+library(readxl)
 library(ggplot2)
+library(ggrepel)
+library(ggpmisc)
+library(tibble)
+library(scales)
+library(reshape2)
+library(patchwork)
+library(dplyr)
 
 mass_arrests <- read_excel("/Users/felixramirez/Desktop/DACSS_690V/DACSS_690V-HW3/Mass_Arrests.xlsx")
 
 covid <- read.csv("/Users/felixramirez/Desktop/DACSS_690V/DACSS_690V-HW3/covid-19.csv")
 
-
+safe_cities <- read_excel("/Users/felixramirez/Desktop/DACSS_690V/DACSS_690V-HW3/safeCities_ecoUI.xlsx")
 
 ```
 
-## Ethnicity and Arrest Type Plot
+## Ethnicity and Arrest Type Plot (Cat - Cat)
 
 ```{r}
 str(mass_arrests)
@@ -35,7 +42,18 @@ eth_arresttypeDF
 
 ```{r}
 topdata <- eth_arresttypeDF[eth_arresttypeDF$Ethnicity %in% names(sort(table(mass_arrests$Ethnicity), decreasing = TRUE)) [1:15],]
-ggplot(data = topdata, aes(x = `Arrest Type`, y = reorder(Ethnicity,pct), fill = pct))+
+
+topdata <- topdata|>
+  mutate(
+    Arrest_Type_Label = case_when(
+      `Arrest Type` == "F"~ "Felony",
+      `Arrest Type` == "M" ~ "Misdemeanor",
+      `Arrest Type` == "W" ~ "Warrant",
+      `Arrest Type` == "O" ~ "Other",
+      TRUE ~'Arrest Type'
+    )
+  )
+p1 <- ggplot(topdata, aes(x = Arrest_Type_Label, y = reorder(Ethnicity,pct), fill = pct))+
   geom_tile()+
   labs(
     title = "Arrest Type Distribution by Ethnicity",
@@ -51,4 +69,142 @@ ggplot(data = topdata, aes(x = `Arrest Type`, y = reorder(Ethnicity,pct), fill =
     legend.direction = "horizontal"
   )+
   scale_fill_gradient(low = "white", high = "steelblue")
+p1
+saveRDS(p1, file = "p1.rds")
+
+```
+
+## COVID Cases vs. Deaths by Country (Num -Num)
+
+### Plot 2
+
+```{r}
+covid_country <- aggregate(
+  cbind(daily_cases_mean, daily_deaths_mean) ~ Entity, data = covid, sum)
+
+top20covid <- covid_country[order(-covid_country$daily_cases_mean), ][1:20,] 
+
+p2 <- ggplot(top20covid, aes(x = daily_deaths_mean, y = daily_cases_mean))+
+  geom_point(color = "steelblue", size = 3)+
+  geom_text_repel(aes(label = Entity), size = 3)+
+  labs(
+    title = "COVID Cases vs Deaths (Top 20 Countries)",
+    subtitle = "Sum over time of reported cases and deaths for each country",
+    x = "Deaths",
+    y = "Cases"
+  )+
+  theme_classic()
+p2
+saveRDS(p2, file = "p2.rds")
+```
+
+## Arrest Age by Racial Group (Num - Cat)
+
+```{r, fig.width=10}
+mass_arrests <- mass_arrests[!is.na(mass_arrests$Age) & mass_arrests$Race != "U",]
+
+mass_arrests <- mass_arrests|>
+  mutate(
+    Race_Label = case_when(
+      Race == "I" ~ "American Indian or Alaskan Native",
+      Race == "O" ~ "Asian or Pasific Islander",
+      Race == "B" ~ "Black/African American",
+      Race == "H" ~ "Hispanic",
+      Race == "J" ~ "Middle Eastern or East Indian",
+      Race == "W" ~ "White"
+    
+)
+  )
+
+arrestplot <- ggplot(mass_arrests, aes(y = Age))+
+  geom_violin(aes(x= Race_Label), fill= "steelblue", trim = FALSE)+
+  coord_flip()+
+  scale_y_continuous()+
+  labs(
+    title = "Age Distribution by Race",
+    subtitle = "Violin Plot of Arrest Age Across Racial Groups",
+    x = "Race",
+    y = "Age"
+  )+
+  theme_classic()
+
+Annotations <- function(theValues, posX, posY) {
+  output <- theValues[c(3,4)] |>
+    round(1)|>
+    as.list()|>
+    as.data.frame()
+  names(output) <- c("median", "mean")
+  
+  tibble(x = posX, y = posY, tb = list(output) )
+}
+
+raceinput <- tapply(mass_arrests$Age, mass_arrests$Race, summary)
+
+ann1 <- Annotations(raceinput[[1]], 1,70)
+ann2 <- Annotations(raceinput[[2]], 2,70)
+ann3 <- Annotations(raceinput[[3]], 3,70)
+ann4 <- Annotations(raceinput[[4]], 4,70)
+ann5 <- Annotations(raceinput[[5]], 5,70)
+ann6 <- Annotations(raceinput[[6]], 6,70)
+
+p3 <- arrestplot +
+  geom_table(data = ann1, aes(x = x, y = y, label = tb), vjust = 0.5)+
+  geom_table(data = ann2, aes(x = x, y = y, label = tb), vjust = 0.5)+
+  geom_table(data = ann3, aes(x = x, y = y, label = tb), vjust = 0.5)+
+  geom_table(data = ann4, aes(x = x, y = y, label = tb), vjust = 0.5)+
+  geom_table(data = ann5, aes(x = x, y = y, label = tb), vjust = 0.5)+
+  geom_table(data = ann6, aes(x = x, y = y, label = tb), vjust = 0.5)
+p3
+
+saveRDS(p3, file = "p3.rds")
+```
+
+## Safe Cities (Multivariate)
+
+```{r, fig.width=12, fig.height=6}
+safe_cities <- safe_cities[, !(names(safe_cities) %in% "Overall_Score")]
+
+safecities_long <- melt(safe_cities, id.vars = "city")
+safecities_long$dimension <- substr(safecities_long$variable, 1, 1)
+safecities_long$type <- ifelse(grepl("_In_", safecities_long$variable), "input", "output")
+
+safecities_long_avg <- aggregate(value ~ city + type + dimension, data = safecities_long, FUN = mean, na.rm = TRUE)
+
+#Original Plot
+safecities_org <- ggplot( safecities_long_avg[safecities_long_avg$type == "input", ], 
+  aes(x = reorder(dimension, value, median),
+      y = reorder(city, value, median),
+      fill = value))+
+  geom_tile()+
+  scale_fill_gradient(low = "white", high = "steelblue")+
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 1, size = 10),
+    axis.text.y = element_text(size = 6)
+    )
+
+
+#Improved Plot
+safecities_imprv <- ggplot( safecities_long_avg[safecities_long_avg$type == "input", ], 
+  aes(x = reorder(dimension, value, median),
+      y = reorder(city, value, median),
+      fill = value))+
+  geom_tile()+
+  scale_fill_gradient(low = "white", high = "steelblue")+
+  labs(
+    title = "How do Cities Perform on Different Safety Measures?",
+    subtitle = "Camparing Cities Across the World",
+    x = "Dimensions",
+    y = "Cities",
+    fill = "Score"
+  )+
+  theme_classic()+
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 1, size = 10),
+    axis.text.y = element_text(size = 6),
+    legend.position = "right",
+    plot.title = element_text(face = "bold")
+  )
+  safecities_org + safecities_imprv
+  
+  
 ```
