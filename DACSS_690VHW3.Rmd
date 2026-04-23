@@ -91,7 +91,8 @@ p2 <- ggplot(top20covid, aes(x = daily_deaths_mean, y = daily_cases_mean))+
     title = "COVID Cases vs Deaths (Top 20 Countries)",
     subtitle = "Sum over time of reported cases and deaths for each country",
     x = "Deaths",
-    y = "Cases"
+    y = "Cases",
+    caption = "COVID-19 Data"
   )+
   theme_classic()
 p2
@@ -124,7 +125,8 @@ arrestplot <- ggplot(mass_arrests, aes(y = Age))+
     title = "Age Distribution by Race",
     subtitle = "Violin Plot of Arrest Age Across Racial Groups",
     x = "Race",
-    y = "Age"
+    y = "Age",
+    caption = "Massachussetts State Police Arrests"
   )+
   theme_classic()
 
@@ -161,7 +163,7 @@ saveRDS(p3, file = "p3.rds")
 
 ## Safe Cities (Multivariate)
 
-```{r, fig.width=12, fig.height=10}
+```{r, fig.width=12, fig.height=10.5}
 safe_cities <- safe_cities[, !(names(safe_cities) %in% "Overall_Score")]
 
 safecities_long <- melt(safe_cities, id.vars = "city")
@@ -191,6 +193,7 @@ safecities_org <- ggplot( safecities_long_avg[safecities_long_avg$type == "input
   aes(x = reorder(dimension_label, value, median),
       y = reorder(city, value, median),
       fill = value))+
+  labs(caption = "City Safety Data")+
   geom_tile()+
   scale_fill_gradient(low = "white", high = "steelblue")+
   theme(
@@ -211,12 +214,13 @@ safecities_imprv <- ggplot( safecities_long_avg[safecities_long_avg$type == "inp
     subtitle = "Comparing Cities Across the World",
     x = "Dimensions",
     y = "Cities",
-    fill = "Score"
+    fill = "Score",
+    caption = "City Safety Data"
   )+
   theme_classic()+
   theme(
-    axis.text.x = element_text(angle = 90, hjust = 1, size = 11.5),
-    axis.text.y = element_text(size = 11.5),
+    axis.text.x = element_text(angle = 90, hjust = 1, size = 11.55),
+    axis.text.y = element_text(size = 11.55),
     legend.position = "right",
     plot.title = element_text(face = "bold")
   )
